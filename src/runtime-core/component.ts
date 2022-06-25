@@ -1,19 +1,29 @@
 import { PublicInstanceProxyHandlers } from './componentPublicInstance'
+import { initProps } from './componentProps';
+import { shallowReadonly } from '../reactivity/reactive';
+import { emit } from './componentEmit';
+import { initSlots } from './ComponentSlots'
 
 export function createComponentInstance (vnode) {
+  // 组件实例: Instance
   const component = {
     vnode,
     type: vnode.type,
-    setupState: {}
+    setupState: {},
+    props: {}, // 接收组件的props,
+    emit: () => {}, // 接收组件的emit
+    slots: {}
   }
 
-  return component;
+  component.emit = emit.bind(null, component) as any
+
+  return component; // 被render中的instance变量接收
 }
 
 export function setupComponent (instance) {
-  // TODO
-  // initProps()
-  // initSlots()
+  // 初始化组件的props属性
+  initProps(instance, instance.vnode.props)
+  initSlots(instance, instance.vnode.children)
 
   // 初始化有状态的组件
   setupStatefulComponent(instance)
@@ -22,15 +32,17 @@ export function setupComponent (instance) {
 function setupStatefulComponent(instance: any) {
   // 拿到组件的setup:
   // a. createApp(rootComponent)，之后rootComponent被当做vnode的type参数创建虚拟节点。
-  // b. 而vnode被当做createComponentInstance的返回值instance的属性
+  // b. 而vnode作为instance的属性之一，在createComponentInstance中被返回
   const Component = instance.type;
   // 创建代理对象，使setup中的函数可以被render中this.key访问到值
   instance.proxy = new Proxy({_: instance}, PublicInstanceProxyHandlers)
-
+  // 取出Component的setup API
   const { setup } = Component;
   // 有setup, 将其返回值赋值给setupResult
   if (setup) {
-    const setupResult = setup()
+    const setupResult = setup(shallowReadonly(instance.props), {
+      emit: instance.emit
+    })
     // 处理拿到的结果
     handleSetupResult(instance, setupResult);
   }

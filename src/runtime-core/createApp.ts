@@ -6,8 +6,8 @@ export function createApp (rootComponent) {
   return {
     // 1.1 createApp内部返回一个包含mount函数的对象，接收container使App挂载其上
     mount(rootContainer) {
-      // 1.2 component -> vNode， 后续的操作全部基于组件转换的vNode
-      const vnode = createVNode(rootComponent);
+      // 1.2 component -> VNode， 后续的操作全部基于组件转换的VNode
+      const vnode = createVNode(rootComponent /* app { render, setup } */ );
       // 1.3 基于vnode和rootContainer在内部调用patch方法，将vnode渲染为真实的DOM
       render(vnode, rootContainer);
     }

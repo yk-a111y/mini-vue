@@ -1,6 +1,6 @@
-import { isObject } from "../shared/index";
 import { ShapeFlags } from "../shared/ShapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
+import { Fragment, Text } from "./vnode";
 
 export function render (vnode, container) {
   // 1. patch(内部判断类型，component调用processComponent，element调用processElement)
@@ -11,14 +11,41 @@ function patch (vnode, container) {
   // 1.1 处理组件 or 元素
   console.log(vnode.type);
     // shapeFlags判断vNode的类型
-  const { shapeFlag } = vnode
-  if (shapeFlag & ShapeFlags.ELEMENT) {
-    processElement(vnode, container);
-  } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
-    processComponent(vnode, container);
+  const { shapeFlag, type } = vnode
+
+  // Fragment => 只渲染children，解决slot渲染总是包裹在div里的问题
+  switch (type) {
+    case Fragment:
+      processFragment(vnode, container)
+      break;
+    case Text:
+      processText(vnode, container)
+      break;
+    default:
+      if (shapeFlag & ShapeFlags.ELEMENT) {
+        processElement(vnode, container);
+      } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+        processComponent(vnode, container);
+      }
   }
 }
 
+/* ****************** 处理Text ********************* */
+function processText(vnode, container) {
+  // 文本节点中，children为传入的字符串
+  const { children } = vnode
+  // 文本赋值给el属性
+  const textNode = (vnode.el = document.createTextNode(children));
+  container.append(textNode);
+}
+
+/* ****************** 处理Fragment ********************* */
+function processFragment(vnode, container) {
+  mountChildren(vnode, container);
+}
+
+
+/* ****************** 处理Element ********************* */
 function processElement(vnode: any, container: any) {
   // 挂载虚拟节点
   mountElement(vnode, container);
@@ -31,7 +58,7 @@ function mountElement (vnode, container) {
   if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
     el.textContent = children;
   } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-    mountChildren(children, el);
+    mountChildren(vnode, el);
   }
   // b. 处理vnode的props，为标签设置属性
   const { props } = vnode;
@@ -51,10 +78,11 @@ function mountElement (vnode, container) {
 }
 
 function mountChildren(vnode, container) {
-  vnode.forEach(v => {
-    patch(v, container);
-  })
+  vnode.children.forEach(element => {
+    patch(element, container);
+  });
 }
+
 
 /* ****************** 处理组件 ********************* */
 function processComponent(vnode: any, container: any) {
@@ -64,6 +92,7 @@ function processComponent(vnode: any, container: any) {
 
 function mountComponent(initialVNode: any, container: any) {
   // 1.2.1 根据虚拟节点创建组件实例
+  // instance: { vnode, type: vnode.type(rootComponent), setupState }
   const instance = createComponentInstance(initialVNode);
   // 1.2.2 对组件实例进行配置
   setupComponent(instance);
@@ -73,7 +102,7 @@ function mountComponent(initialVNode: any, container: any) {
 }
 
 function setupRenderEffect(instance: any, initialVNode, container: any) {
-  // 拿到render返回的虚拟节点树(即在APP中return出来的h函数)
+  // 拿到render返回的虚拟节点树(即在App中return出来的h函数)
   const { proxy } = instance
   const subTree = instance.render.call(proxy);
   // 基于subTree再次调用patch
