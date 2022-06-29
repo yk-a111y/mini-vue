@@ -4,7 +4,8 @@ import { shallowReadonly } from '../reactivity/reactive';
 import { emit } from './componentEmit';
 import { initSlots } from './ComponentSlots'
 
-export function createComponentInstance (vnode) {
+export function createComponentInstance (vnode, parent) {
+  console.log('createInstance: ', parent, vnode)
   // 组件实例: Instance
   const component = {
     vnode,
@@ -12,7 +13,9 @@ export function createComponentInstance (vnode) {
     setupState: {},
     props: {}, // 接收组件的props,
     emit: () => {}, // 接收组件的emit
-    slots: {}
+    slots: {},
+    provides: parent ? parent.provides : {},
+    parent
   }
 
   component.emit = emit.bind(null, component) as any
@@ -40,9 +43,12 @@ function setupStatefulComponent(instance: any) {
   const { setup } = Component;
   // 有setup, 将其返回值赋值给setupResult
   if (setup) {
+    // instance赋值给currentInstance，记录当前组件实例
+    setCurrentInstance(instance);
     const setupResult = setup(shallowReadonly(instance.props), {
       emit: instance.emit
     })
+    setCurrentInstance(null);
     // 处理拿到的结果
     handleSetupResult(instance, setupResult);
   }
@@ -62,5 +68,13 @@ function finishComponentSetup(instance: any) {
   const component = instance.type;
   // 假设组件一定有render
   instance.render = component.render;
+}
+
+let currentInstance = null;
+export function getCurrentInstance() {
+  return currentInstance;
+}
+export function setCurrentInstance(instance) {
+  currentInstance = instance;
 }
 
