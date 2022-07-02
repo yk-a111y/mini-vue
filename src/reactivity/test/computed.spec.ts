@@ -22,20 +22,22 @@ describe('computed', () => {
     })
     const cValue = computed(getter);
 
-    // Lazy
+    // Lazy => 不访问cValue.value不会调用getter
     expect(getter).not.toHaveBeenCalled();
     expect(cValue.value).toBe(1);
-    expect(getter).toHaveBeenCalledTimes(1); // 首次调用
+    expect(getter).toHaveBeenCalledTimes(1); // 访问之后，首次调用
 
     // should not compute again
     cValue.value;
     expect(getter).toBeCalledTimes(1); // 值未改变故不调用
 
     // should not compute until needed
+    // value.foo的值改变，触发trigger执行对应的effect中的scheduler将dirty置为false
     value.foo = 2;
     expect(getter).toBeCalledTimes(1);
 
     // now it should be compute
+    // scheduler 将dirty置为false后，就可以重新计算cValue.value的值了
     expect(cValue.value).toBe(2);
     expect(getter).toBeCalledTimes(2); // 值改变，重新计算并缓存，不能再用之前缓存的值了
 
