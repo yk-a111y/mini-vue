@@ -4,7 +4,7 @@
 目前包括reactivity和runtime-core两大模块的基本功能
 
 
-#### reactive: 响应式模块，利用jest实现TDD开法。
+#### reactive: 响应式模块，利用jest实现TDD开发。
 
 - [x] reactive方法: 基于传入对象返回响应式数据
   - [x] track: 收集依赖
