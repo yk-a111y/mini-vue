@@ -2,9 +2,11 @@ import { track, trigger } from './effect'
 import { reactive, ReactiveFlags, readonly } from './reactive';
 import { isObject } from '../shared/index'
 
+// 根据isReadOnly和shallow创建不同的Getter
 const get = createGetter();
 const readonlyGet = createGetter(true);
 const shallowReadonlyGet = createGetter(true, true)
+// 创建setter
 const set = createSetter();
 
 function createGetter (isReadOnly = false, shallow = false) {
@@ -14,6 +16,8 @@ function createGetter (isReadOnly = false, shallow = false) {
 
     const res = Reflect.get(target, key);
 
+    // 如果shallow为true => 证明是shallowReadOnly的Getter，直接return res即可
+    // 无需实现嵌套逻辑(shallow为true)和track收集依赖(只读)
     if (shallow) return res;
     // 如果res是对象，递归处理
     if (isObject(res)) return isReadOnly ? readonly(res) : reactive(res);

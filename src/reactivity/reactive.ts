@@ -7,6 +7,7 @@ export const enum ReactiveFlags {
 }
 
 export function reactive (raw) {
+  // reactiveActiveObject 根据handler的类型返回特定的Proxy对象
   return createActiveObject(raw, mutableHandlers);
 }
 

@@ -57,7 +57,8 @@ export function proxyRefs(objectWithRefs) {
     get (target, key) {
       return unRef(Reflect.get(target, key));
     },
-    // 
+    // 非ref对象赋值给ref对象 => ref.value = value
+    // 否则，直接复制即可
     set (target, key, value) {
       if (isRef(target[key]) && !isRef(value)) {
         return (target[key].value = value);

@@ -77,7 +77,8 @@ describe("effect", () => {
     stop(runner);
     obj.prop = 3;
     // obj.prop++无法通过测试，因为obj.prop = obj.prop + 1会触发getter中的track
-    // 导致之前stop清除的effect有添加进来，故还是会使obj.prop = 3
+    // 导致之前stop清除的effect又添加进来，故执行effect中的fn => dummy的值应该为3
+    // stop删除依赖后，应在getter中加shouldTrack额外控制是够应该track收集依赖,防止obj.prop++这种情况触发getter使依赖死灰复燃
     expect(dummy).toBe(2);
     // 运行runner依旧可以更新
     runner();
