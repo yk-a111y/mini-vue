@@ -23,6 +23,7 @@ export function createComponentInstance (vnode, parent) {
   return component; // 被render中的instance变量接收
 }
 
+// instance => 基于vNode和parent创建的组件实例
 export function setupComponent (instance) {
   // 初始化组件的props属性
   initProps(instance, instance.vnode.props)
@@ -34,7 +35,7 @@ export function setupComponent (instance) {
 
 function setupStatefulComponent(instance: any) {
   // 拿到组件的setup:
-  // a. createApp(rootComponent)，之后rootComponent被当做vnode的type参数创建虚拟节点。
+  // a. createApp(rootComponent)，之后rootComponent被当做vnode的type参数创建组件的虚拟节点。
   // b. 而vnode作为instance的属性之一，在createComponentInstance中被返回
   const Component = instance.type;
   // 创建代理对象，使setup中的函数可以被render中this.key访问到值

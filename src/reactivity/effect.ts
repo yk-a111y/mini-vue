@@ -82,7 +82,7 @@ export function track (target, key) {
 
 export function trackEffects(dep) {
   // dep收集effect，如果已经在dep中，没必要再添加
-  if (dep.has(activeEffect)) return
+  if (dep.has(activeEffect)) return;
   dep.add(activeEffect);
   // 通过activeEffect(当前激活的ReactiveEffect对象) => 反向收集effect至deps，用以stop函数删除该依赖
   activeEffect.deps.push(dep);

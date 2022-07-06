@@ -52,6 +52,7 @@ function processElement(vnode: any, container: any, parentComponent) {
 }
 
 function mountElement (vnode, container, parentComponent) {
+  // vnode.el保存当前的DOM元素，用于$el的获取
   const el = (vnode.el = document.createElement(vnode.type));
   const { children, shapeFlag } = vnode;
   // a. children 为字符串，设为文本；为数组，
@@ -104,6 +105,7 @@ function mountComponent(initialVNode: any, container: any, parentComponent) {
 function setupRenderEffect(instance: any, initialVNode, container: any) {
   // 拿到render返回的虚拟节点树(即在App中return出来的h函数)
   const { proxy } = instance
+  // render的this指向创建好的代理对象，这样在render执行时，可以访问到setup中的数据
   const subTree = instance.render.call(proxy);
   // 基于subTree再次调用patch
   // 情况一: 是element类型，调用pathc的processElement()
