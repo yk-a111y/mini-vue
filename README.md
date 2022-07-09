@@ -26,3 +26,5 @@
 - [x] computed 的实现
 
 #### runtime-core: 从createApp开始，实现初始化的整个流程
+
+- [x] customRender 功能
