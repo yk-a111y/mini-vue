@@ -8,6 +8,7 @@ class RefImpl {
   public dep;
   // 为isRef方法创建ref对象的唯一标识
   public __v_isRef = true;
+  
   constructor (value) {
     // 为了set新旧值的对比，保存原始数据
     this._rawValue = value
