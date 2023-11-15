@@ -52,9 +52,10 @@ export function track(target, key) {
     dep = new Set();
     depsMap.set(key, dep);
   }
-
-  dep.add(activeEffect);
-  activeEffect.deps.push(dep);
+  if (activeEffect) {
+    dep.add(activeEffect);
+    activeEffect.deps.push(dep);
+  }
 }
 
 export function trigger(target, key) {
