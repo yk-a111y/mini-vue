@@ -45,6 +45,7 @@ describe('effect', () => {
     expect(dummy).toBe(1);
 
     obj.foo++;
+    // 响应式对象的值改变，执行scheduler而不是fn
     expect(scheduler).toHaveBeenCalledTimes(1);
     // should not run yet
     expect(dummy).toBe(1)
@@ -66,5 +67,22 @@ describe('effect', () => {
     expect(dummy).toBe(2);
     runner()
     expect(dummy).toBe(3);
+  })
+
+  it('onStop', () => {
+    const obj = reactive({
+      foo: 1
+    })
+
+    const onStop = jest.fn();
+    let dummy;
+
+    const runner = effect(() => {
+      dummy = obj.foo;
+    }, {
+      onStop
+    })
+    stop(runner); // 执行onstop函数
+    expect(onStop).toHaveBeenCalledTimes(1);
   })
 })
