@@ -1,5 +1,6 @@
+import { isObject } from '../shared';
 import { track, trigger } from './effect';
-import { ReactiveFlag } from './reactive';
+import { ReactiveFlag, reactive, readonly } from './reactive';
 
 const get = createGetter();
 const set = createSetter();
@@ -14,6 +15,11 @@ function createGetter(isReadonly = false) {
       return isReadonly;
     }
     const res = Reflect.get(target, key);
+    // 解决嵌套对象的响应式问题
+    if (isObject(res)) {
+      return isReadonly ? readonly(res) : reactive(res);
+    }
+
     // 如果不是readonly，getter触发时会收集依赖
     if (!isReadonly) {
       track(target, key);
