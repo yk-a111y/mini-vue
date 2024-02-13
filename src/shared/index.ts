@@ -1,5 +1,5 @@
 export const extend = Object.assign;
 
 export const isObject = (val) => {
-  return val !== undefined && typeof val === 'object';
+  return val !== null && typeof val === 'object';
 }
