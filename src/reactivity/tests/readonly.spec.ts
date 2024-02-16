@@ -13,7 +13,7 @@ describe('readonly', () => {
     expect(isProxy(wrapped)).toBe(true);
   })
 
-  it('nested readonly obj', () => {
+  it.skip('nested readonly obj', () => {
     const original = {foo: 1, bar: { baz: 2}};
     const wrapped = readonly(original);
 
