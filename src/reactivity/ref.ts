@@ -33,6 +33,12 @@ export function ref (value) {
   return new RefImpl(value);
 }
 
+function trackRefValue (ref) {
+  if (isTracking()) {
+    trackEffects(ref.dep);
+  }
+}
+
 export function isRef (ref) {
   return !!ref.__v_isRef;
 }
@@ -41,8 +47,17 @@ export function unRef (ref) {
   return isRef(ref) ? ref.value : ref;
 }
 
-function trackRefValue (ref) {
-  if (isTracking()) {
-    trackEffects(ref.dep);
-  }
+export function proxyRefs (objectWithRefs) {
+  return new Proxy(objectWithRefs, {
+    get(target, key) {
+      return unRef(Reflect.get(target, key));
+    },
+    set(target, key, value) {
+      if (isRef(target[key]) && !isRef(value)) {
+        return target[key].value = value;
+      } else {
+        return Reflect.set(target, key, value);
+      }
+    }
+  })
 }
