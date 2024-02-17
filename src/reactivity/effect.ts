@@ -1,6 +1,6 @@
 import { extend } from "../shared";
 
-class ReactiveEffect {
+export class ReactiveEffect {
   private _fn;
   deps = [];
   active = true; // 控制stop函数是否执行；只有在active的情况下才cleanupEffect;
