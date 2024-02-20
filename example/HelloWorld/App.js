@@ -1,5 +1,4 @@
-import { h } from '../../lib/guide-mini-vue.esm.js'
-import { foo } from './Foo.js' 
+import { h } from '../../lib/guide-mini-vue.esm.js' 
 
 export const App = {
   // 1. render 编译模板成 template
