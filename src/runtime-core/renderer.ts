@@ -25,7 +25,8 @@ function processComponent(vNode, container) {
 }
 
 function mountElement(vNode, container) {
-  const el = document.createElement(vNode.type);
+  // 同时在vNode上保存el，用于this.$el访问
+  const el = vNode.el = document.createElement(vNode.type);
 
   // 配置props
   const { props } = vNode;
@@ -57,11 +58,16 @@ function mountComponent(vNode: any, container) {
   const instance = createComponentInstance(vNode);
 
   setupComponent(instance);
-  setupRenderEffect(instance, container);
+  setupRenderEffect(instance, vNode, container);
 }
 
-function setupRenderEffect(instance: any, container) {
-  const subTree = instance.render();
+function setupRenderEffect(instance: any, vNode, container) {
+  const { proxy } = instance;
+  // this指向通过setupStatefulComponent生成的proxy对象
+  const subTree = instance.render.call(proxy);
 
   patch(subTree, container);
+
+  // patch自顶向下处理完成后，获得el
+  vNode.el = subTree.el;
 }
