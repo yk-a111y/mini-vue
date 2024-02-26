@@ -1,4 +1,5 @@
 import { isObject } from "../shared";
+import { shapeFlags } from "../shared/shapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
 
 export function render(vNode, container) {
@@ -7,10 +8,10 @@ export function render(vNode, container) {
 }
 
 function patch(vNode, container) {
-  if (typeof vNode.type === 'string') {
+  if (vNode.shapeFlag & shapeFlags.ELEMENT) {
     // 处理元素
     processElement(vNode, container);
-  } else if (isObject(vNode.type)) {
+  } else if (vNode.shapeFlag & shapeFlags.STATEFUL_COMPONENT) {
     // 处理组件
     processComponent(vNode, container);
   }
@@ -37,9 +38,9 @@ function mountElement(vNode, container) {
 
   // 配置children(可能是文本，也可能是数组内嵌套多个vNode)
   const { children } = vNode;
-  if(typeof children === 'string') {
+  if(vNode.shapeFlag & shapeFlags.TEXT_CHILDREN) {
     el.textContent = children;
-  } else if (Array.isArray(children)) {
+  } else if (vNode.shapeFlag & shapeFlags.ARRAY_CHILDREN) {
     mountChildren(vNode, el);
   }
 
