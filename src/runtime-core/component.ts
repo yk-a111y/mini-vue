@@ -1,16 +1,21 @@
+import { shallowReadonly } from "../reactivity/reactive";
+import { initProps } from "./componentProps";
 import { publicInstanceProxyHandlers } from "./componentPublicInstance";
 
 export function createComponentInstance(vNode) {
   const component = {
     type: vNode.type,
-    vNode
+    vNode,
+    setupState: {},
+    props: {}
   }
 
   return component;
 }
 
 export function setupComponent(instance) {
-  // TODO initProps
+  // initProps
+  initProps(instance, instance.vNode.props);
   // TODO initSlots
 
   // 为组件挂载状态
@@ -27,7 +32,7 @@ function setupStatefulComponent(instance: any) {
   const { setup } = Component;
 
   if (setup) {
-    const setupResult = setup();
+    const setupResult = setup(shallowReadonly(instance.props));
     handleSetupResult(instance, setupResult);
   }
 }
