@@ -7,7 +7,15 @@ export const App = {
     window.self = this;
     return h(
       'div', 
-      {id: 'yk-test'}, 
+      {
+        id: 'yk-test',
+        onClick() {
+          console.log('click');
+        },
+        onMouseDown() {
+          console.log('onMouseDown');
+        }
+      }, 
       [
         h('div', {id: 'inner'},'hi, ' + this.msg), 
         h('p', { class: 'red'}, '红色文字')

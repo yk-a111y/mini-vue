@@ -33,7 +33,14 @@ function mountElement(vNode, container) {
   const { props } = vNode;
   for (const key in props) {
     const val = props[key];
-    el.setAttribute(key, val);
+
+    const isOn = (key: string) => /^on[A-Z]/.test(key);
+    if (isOn(key)) {
+      const event = key.slice(2).toLowerCase();
+      el.addEventListener(event, val);
+    } else {
+      el.setAttribute(key, val);
+    }
   }
 
   // 配置children(可能是文本，也可能是数组内嵌套多个vNode)
