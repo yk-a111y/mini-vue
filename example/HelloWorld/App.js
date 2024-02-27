@@ -10,17 +10,22 @@ export const App = {
       'div', 
       {
         id: 'yk-test',
-        onClick() {
-          console.log('click');
-        },
-        onMouseDown() {
-          console.log('onMouseDown');
-        }
+        // onClick() {
+        //   console.log('click');
+        // },
+        // onMouseDown() {
+        //   console.log('onMouseDown');
+        // }
       }, 
       [
         h('div', {id: 'inner'},'hi, ' + this.msg), 
         h('p', { class: 'red'}, '红色文字'),
-        h(Foo, { count: 1 }, [])
+        h(Foo, { count: 1, onAdd(a, b) {
+          console.log('Execute onAdd');
+          console.log(a + b);
+        }, onAddFoo() {
+          console.log('Execute add-foo');
+        } }, [])
       ]
     );
   },
