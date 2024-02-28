@@ -1,4 +1,4 @@
-import { h } from '../../lib/guide-mini-vue.esm.js'
+import { h, createTextVNode } from '../../lib/guide-mini-vue.esm.js'
 import { Foo } from './Foo.js';
 
 window.self = null;
@@ -22,7 +22,10 @@ export const App = {
         h('p', { class: 'red'}, '红色文字'),
         h(Foo, {}, {
           // 具名插槽
-          header: ({ age }) => h('p', {}, 'render header' + age),
+          header: ({ age }) => [
+            h('p', {}, 'render header' + age),
+            createTextVNode('文本节点')
+          ],
           footer: () => h('p', {}, 'render footer')
         }),
         // h(Foo, { count: 1, onAdd(a, b) {

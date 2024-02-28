@@ -1,6 +1,7 @@
 import { isObject } from "../shared";
 import { shapeFlags } from "../shared/shapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
+import { Fragment, Text } from "./vNode";
 
 export function render(vNode, container) {
   // 递归处理 vnode 和其对应容器
@@ -8,13 +9,33 @@ export function render(vNode, container) {
 }
 
 function patch(vNode, container) {
-  if (vNode.shapeFlag & shapeFlags.ELEMENT) {
-    // 处理元素
-    processElement(vNode, container);
-  } else if (vNode.shapeFlag & shapeFlags.STATEFUL_COMPONENT) {
-    // 处理组件
-    processComponent(vNode, container);
+  switch (vNode.type) {
+    case Fragment:
+      processFragment(vNode, container);
+      break;
+    case Text:
+      processTextNode(vNode, container);
+      break;
+    default:
+      if (vNode.shapeFlag & shapeFlags.ELEMENT) {
+        // 处理元素
+        processElement(vNode, container);
+      } else if (vNode.shapeFlag & shapeFlags.STATEFUL_COMPONENT) {
+        // 处理组件
+        processComponent(vNode, container);
+      }
+      break;
   }
+}
+
+function processFragment(vNode, container) {
+  mountChildren(vNode, container);
+}
+
+function processTextNode(vNode, container) {
+  const { children } = vNode;
+  const textNode = (vNode.el = document.createTextNode(children));
+  container.append(textNode);
 }
 
 function processElement(vNode, container) {
