@@ -2,6 +2,7 @@ import { shallowReadonly } from "../reactivity/reactive";
 import { emit } from "./componentEmit";
 import { initProps } from "./componentProps";
 import { publicInstanceProxyHandlers } from "./componentPublicInstance";
+import { initSlots } from "./componentSlots";
 
 export function createComponentInstance(vNode) {
   const component = {
@@ -9,6 +10,7 @@ export function createComponentInstance(vNode) {
     vNode,
     setupState: {},
     props: {},
+    slots: {},
     emit: () => {}
   }
 
@@ -20,7 +22,8 @@ export function createComponentInstance(vNode) {
 export function setupComponent(instance) {
   // initProps
   initProps(instance, instance.vNode.props);
-  // TODO initSlots
+  // initSlots
+  initSlots(instance, instance.vNode.children);
 
   // 为组件挂载状态
   setupStatefulComponent(instance);

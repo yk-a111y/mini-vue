@@ -20,12 +20,17 @@ export const App = {
       [
         h('div', {id: 'inner'},'hi, ' + this.msg), 
         h('p', { class: 'red'}, '红色文字'),
-        h(Foo, { count: 1, onAdd(a, b) {
-          console.log('Execute onAdd');
-          console.log(a + b);
-        }, onAddFoo() {
-          console.log('Execute add-foo');
-        } }, [])
+        h(Foo, {}, {
+          // 具名插槽
+          header: ({ age }) => h('p', {}, 'render header' + age),
+          footer: () => h('p', {}, 'render footer')
+        }),
+        // h(Foo, { count: 1, onAdd(a, b) {
+        //   console.log('Execute onAdd');
+        //   console.log(a + b);
+        // }, onAddFoo() {
+        //   console.log('Execute add-foo');
+        // } }, [])
       ]
     );
   },

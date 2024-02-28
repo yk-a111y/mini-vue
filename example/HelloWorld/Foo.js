@@ -1,13 +1,13 @@
-import { h } from '../../lib/guide-mini-vue.esm.js'
+import { h, renderSlots } from '../../lib/guide-mini-vue.esm.js'
 
 export const Foo = {
   setup(props, { emit }) {
     // props
-    console.log(props);
+    // console.log(props);
 
     // props为shallowReadonly数据
-    props.count++;
-    console.log(props);
+    // props.count++;
+    // console.log(props);
 
     // emit
     const emitAdd = () => {
@@ -21,11 +21,19 @@ export const Foo = {
     }
   },
   render() {
-    const btn = h('button', {
-      onClick: this.emitAdd
-    }, "emitAdd")
+    // const btn = h('button', {
+    //   onClick: this.emitAdd
+    // }, "emitAdd")
+    // console.log(this.$slots);
     const foo = h('p', {}, "foo")
 
-    return h('div', {}, [foo, btn]);
+    const age = 18;
+
+    return h('div', {}, [
+      renderSlots(this.$slots, 'header', {
+        age
+      }),
+      foo,
+      renderSlots(this.$slots, 'footer')]);
   }
 }
