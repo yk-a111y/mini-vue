@@ -6,9 +6,9 @@ import { Fragment, Text } from "./vNode";
 
 export function createRenderer(options) {
   const {
-    createElement,
-    patchProps,
-    insert
+    createElement: hostCreateElement,
+    patchProps: hostPatchProps,
+    insert: hostInsert
   } = options;
 
   function render(vNode, container) {
@@ -56,13 +56,13 @@ export function createRenderer(options) {
   
   function mountElement(vNode, container, parent) {
     // 同时在vNode上保存el，用于this.$el访问
-    const el = vNode.el = createElement(vNode.type);
+    const el = vNode.el = hostCreateElement(vNode.type);
   
     // 配置props
     const { props } = vNode;
     for (const key in props) {
       const val = props[key];
-      patchProps(el, key, val);
+      hostPatchProps(el, key, val);
     }
   
     // 配置children(可能是文本，也可能是数组内嵌套多个vNode)
@@ -74,7 +74,7 @@ export function createRenderer(options) {
     }
   
     // el加入容器中
-    insert(el, container);
+    hostInsert(el, container);
   }
   
   function mountChildren(vNode, container, parent) {

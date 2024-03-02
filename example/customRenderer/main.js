@@ -12,7 +12,7 @@ const renderer = createRenderer({
       return rect;
     }
   },
-  patchProp(el, key, val) {
+  patchProps(el, key, val) {
     el[key] = val;
   },
   insert(el, parent) {
@@ -22,6 +22,7 @@ const renderer = createRenderer({
 
 console.log(PIXI);
 
+// 生成Canvas容器
 const game = new PIXI.Application({
   width: 500,
   height: 500
