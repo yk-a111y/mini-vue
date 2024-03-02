@@ -4,13 +4,15 @@ import { initProps } from "./componentProps";
 import { publicInstanceProxyHandlers } from "./componentPublicInstance";
 import { initSlots } from "./componentSlots";
 
-export function createComponentInstance(vNode) {
+export function createComponentInstance(vNode, parent) {
   const component = {
     type: vNode.type,
     vNode,
     setupState: {},
     props: {},
     slots: {},
+    provides: {},
+    parent: parent,
     emit: () => {}
   }
 
@@ -39,9 +41,11 @@ function setupStatefulComponent(instance: any) {
   const { setup } = Component;
 
   if (setup) {
+    setCurrentInstance(instance);
     const setupResult = setup(shallowReadonly(instance.props), {
       emit: instance.emit
     });
+    setCurrentInstance(null);
     handleSetupResult(instance, setupResult);
   }
 }
@@ -60,4 +64,13 @@ function finishComponentSetup(instance) {
   if (Component.render) {
     instance.render = Component.render;
   }
+}
+
+let currentInstance = null;
+export function getCurrentInstance() {
+  return currentInstance;
+}
+
+function setCurrentInstance(instance) {
+  currentInstance = instance;
 }

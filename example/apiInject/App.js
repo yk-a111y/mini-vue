@@ -7,7 +7,7 @@ const Provider = {
     provide('bar', 'bar-value')
   },
   render() {
-    return h('div', {}, [h('p', {}, 'Procider'), h(ProviderTwo)])
+    return h('div', {}, [h('p', {}, 'Provider'), h(ProviderTwo)])
   }
 }
 
@@ -17,7 +17,7 @@ const ProviderTwo = {
     provide('foo', 'foo2-value')
     const foo = inject('foo')
     // 带默认值的inject
-    const baz = inject('baz', () => 'bazDefault')
+    const baz = inject('baz', 'bazDefault')
     return {
       foo, baz
     }
@@ -31,7 +31,7 @@ const Consumer = {
   name: 'Consumer',
   setup() {
     const foo = inject('foo')
-    const bar = inject('bar')
+    const bar = inject('bar', () => 'barDefault')
     return {
       foo, bar
     }
