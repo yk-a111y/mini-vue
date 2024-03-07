@@ -1,4 +1,5 @@
 import { effect } from "../reactivity/effect";
+import { EMPTY_OBJ } from "../shared";
 import { shapeFlags } from "../shared/shapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
 import { createAppAPI } from "./createApp";
@@ -18,7 +19,7 @@ export function createRenderer(options) {
   }
 
   // n1 -> oldSubTree; n2 -> newSubTree
-  function patch(n1, n2, container, parent) {
+  function patch(n1, n2: any, container, parent) {
     const { type, shapeFlag } = n2;
     switch (type) {
       case Fragment:
@@ -51,15 +52,48 @@ export function createRenderer(options) {
   
   function processElement(n1, n2, container, parent) {
     if (!n1) {
+      // 挂载逻辑
       mountElement(n2, container, parent);
     } else {
+      // 更新逻辑
       patchElement(n1, n2, container);
     }
   }
 
+  // 更新Element
   function patchElement(n1, n2, container) {
-    console.log('n1: ', n1);
-    console.log('n2: ', n2);
+    console.log("🚀 ~ patchElement", 'patchElement')
+    // console.log('n1: ', n1);
+    // console.log('n2: ', n2);
+    const el = (n2.el = n1.el);
+    const prevProps = n1.props || EMPTY_OBJ;
+    // console.log("🚀 ~ patchElement ~ oldProps:", prevProps)
+    const nextProps = n2.props || EMPTY_OBJ;
+    // console.log("🚀 ~ patchElement ~ nextProps:", nextProps)
+    // 比较新旧props
+    patchProps(prevProps, nextProps, el);
+  }
+  function patchProps(prevProps, nextProps, el) {
+    if (prevProps !== nextProps) {
+      // 遍历nextProps，处理新增的props
+      for (const key in nextProps) {
+        const prevProp = prevProps[key];
+        const nextProp = nextProps[key];
+        if (prevProp !== nextProp) {
+          hostPatchProps(el, key, prevProp, nextProp);
+        }
+      }
+
+      if (prevProps !== EMPTY_OBJ) {
+        // 遍历prevProps，删除不用的props
+        for (const key in prevProps) {
+          if (!(key in nextProps)) {
+            hostPatchProps(el, key, prevProps, null);
+          }
+        }
+      }
+    }
+    
   }
   
   function processComponent(n1, n2, container, parent) {
@@ -74,7 +108,7 @@ export function createRenderer(options) {
     const { props } = vNode;
     for (const key in props) {
       const val = props[key];
-      hostPatchProps(el, key, val);
+      hostPatchProps(el, key, null, val);
     }
   
     // 配置children(可能是文本，也可能是数组内嵌套多个vNode)
