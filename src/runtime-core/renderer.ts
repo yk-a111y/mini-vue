@@ -1,3 +1,4 @@
+import { effect } from "../reactivity/effect";
 import { shapeFlags } from "../shared/shapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
 import { createAppAPI } from "./createApp";
@@ -13,45 +14,56 @@ export function createRenderer(options) {
 
   function render(vNode, container) {
     // 递归处理 vnode 和其对应容器
-    patch(vNode, container, {});
+    patch(null, vNode, container, {});
   }
 
-  function patch(vNode, container, parent) {
-    switch (vNode.type) {
+  // n1 -> oldSubTree; n2 -> newSubTree
+  function patch(n1, n2, container, parent) {
+    const { type, shapeFlag } = n2;
+    switch (type) {
       case Fragment:
-        processFragment(vNode, container, parent);
+        processFragment(n1, n2, container, parent);
         break;
       case Text:
-        processTextNode(vNode, container);
+        processTextNode(n1, n2, container);
         break;
       default:
-        if (vNode.shapeFlag & shapeFlags.ELEMENT) {
+        if (shapeFlag & shapeFlags.ELEMENT) {
           // 处理元素
-          processElement(vNode, container, parent);
-        } else if (vNode.shapeFlag & shapeFlags.STATEFUL_COMPONENT) {
+          processElement(n1, n2, container, parent);
+        } else if (shapeFlag & shapeFlags.STATEFUL_COMPONENT) {
           // 处理组件
-          processComponent(vNode, container, parent);
+          processComponent(n1, n2, container, parent);
         }
         break;
     }
   }
   
-  function processFragment(vNode, container, parent) {
-    mountChildren(vNode, container, parent);
+  function processFragment(n1, n2, container, parent) {
+    mountChildren(n2, container, parent);
   }
   
-  function processTextNode(vNode, container) {
-    const { children } = vNode;
-    const textNode = (vNode.el = document.createTextNode(children));
+  function processTextNode(n1, n2, container) {
+    const { children } = n2;
+    const textNode = (n2.el = document.createTextNode(children));
     container.append(textNode);
   }
   
-  function processElement(vNode, container, parent) {
-    mountElement(vNode, container, parent);
+  function processElement(n1, n2, container, parent) {
+    if (!n1) {
+      mountElement(n2, container, parent);
+    } else {
+      patchElement(n1, n2, container);
+    }
+  }
+
+  function patchElement(n1, n2, container) {
+    console.log('n1: ', n1);
+    console.log('n2: ', n2);
   }
   
-  function processComponent(vNode, container, parent) {
-    mountComponent(vNode, container, parent);
+  function processComponent(n1, n2, container, parent) {
+    mountComponent(n2, container, parent);
   }
   
   function mountElement(vNode, container, parent) {
@@ -79,7 +91,7 @@ export function createRenderer(options) {
   
   function mountChildren(vNode, container, parent) {
     vNode.children.forEach( v => {
-      patch(v, container, parent);
+      patch(null, v, container, parent);
     });
   }
   
@@ -92,14 +104,35 @@ export function createRenderer(options) {
   }
   
   function setupRenderEffect(instance: any, vNode, container) {
-    const { proxy } = instance;
-    // this指向通过setupStatefulComponent生成的proxy对象
-    const subTree = instance.render.call(proxy);
-  
-    patch(subTree, container, instance);
-  
-    // patch自顶向下处理完成后，获得el
-    vNode.el = subTree.el;
+    // effect包裹，实现副作用收集
+    effect(() => {
+      if (!instance.isMounted) {
+        // 初始化逻辑
+        console.log('init-----------');
+        const { proxy } = instance;
+        // this指向通过setupStatefulComponent生成的proxy对象
+        const subTree = (instance.subTree = instance.render.call(proxy));
+      
+        patch(null, subTree, container, instance);
+      
+        // patch自顶向下处理完成后，获得el
+        vNode.el = subTree.el;
+        // 挂载完成
+        instance.isMounted = true;
+      } else {
+        // 更新逻辑
+        console.log('update-------------');
+        const { proxy } = instance;
+        const subTree = instance.render.call(proxy);
+        const prevSubTree = instance.subTree;
+
+        // 更新subTree
+        instance.subTree = subTree;
+        // patch比较两个树的不同
+        patch(prevSubTree, subTree, container, instance.parent);
+      }
+    })
+    
   }
 
   return {
