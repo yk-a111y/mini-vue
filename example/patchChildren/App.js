@@ -1,5 +1,7 @@
 import { h } from '../../lib/guide-mini-vue.esm.js';
 import arrayToText from './arrayToText.js';
+import textToText from './textToText.js';
+import textToArray from './textToArray.js';
 
 export const App = {
   setup() {
@@ -8,7 +10,9 @@ export const App = {
   render() {
     return h('div', {id: 'root'}, [
       h('div', {}, '主页'),
-      h(arrayToText)
+      // h(arrayToText),
+      // h(textToText)
+      h(textToArray)
     ])
   }
 }

@@ -43,7 +43,7 @@ export function createRenderer(options) {
   }
   
   function processFragment(n1, n2, container, parent) {
-    mountChildren(n2, container, parent);
+    mountChildren(n2.children, container, parent);
   }
   
   function processTextNode(n1, n2, container) {
@@ -58,12 +58,12 @@ export function createRenderer(options) {
       mountElement(n2, container, parent);
     } else {
       // 更新逻辑
-      patchElement(n1, n2, container);
+      patchElement(n1, n2, container, parent);
     }
   }
 
   // 更新Element
-  function patchElement(n1, n2, container) {
+  function patchElement(n1, n2, container, parentComponent) {
     console.log("🚀 ~ patchElement", 'patchElement')
     // console.log('n1: ', n1);
     // console.log('n2: ', n2);
@@ -73,10 +73,10 @@ export function createRenderer(options) {
     const nextProps = n2.props || EMPTY_OBJ;
     // console.log("🚀 ~ patchElement ~ nextProps:", nextProps)
 
-    // 更新children
-    patchChildren(n1, n2, el);
     // 比较新旧props
     patchProps(prevProps, nextProps, el);
+    // 更新children
+    patchChildren(n1, n2, el, parentComponent);
   }
   function patchProps(prevProps, nextProps, el) {
     if (prevProps !== nextProps) {
@@ -100,7 +100,7 @@ export function createRenderer(options) {
     }
     
   }
-  function patchChildren(n1, n2, container) {
+  function patchChildren(n1, n2, container, parentComponent) {
     const prevShapeFlag = n1.shapeFlag;
     // console.log("🚀 ~ patchChildren ~ shapeFlag:", prevShapeFlag)
     const shapeFlag = n2.shapeFlag;
@@ -111,9 +111,19 @@ export function createRenderer(options) {
       if (prevShapeFlag & shapeFlags.ARRAY_CHILDREN) {
         // 1. 把老children删除
         unmountChildren(n1.children);
+      }
+      // n1为数组 n2为字符串 || n1 n2 均为不相等的字符串
+      if (n1.children !== n2.children) {
         // 2. 设置text
         hostSetElementText(container, n2.children);
       }
+    } else {
+      // 新节点为数组，老节点为文本元素
+
+      // 1. 删除文本节点
+      hostSetElementText(container, '');
+      // 2. mount 新的数组
+      mountChildren(n2.children, container, parentComponent);
     }
   }
   
@@ -137,15 +147,15 @@ export function createRenderer(options) {
     if(vNode.shapeFlag & shapeFlags.TEXT_CHILDREN) {
       el.textContent = children;
     } else if (vNode.shapeFlag & shapeFlags.ARRAY_CHILDREN) {
-      mountChildren(vNode, el, parent);
+      mountChildren(vNode.children, el, parent);
     }
   
     // el加入容器中
     hostInsert(el, container);
   }
   
-  function mountChildren(vNode, container, parent) {
-    vNode.children.forEach( v => {
+  function mountChildren(children, container, parent) {
+    children.forEach( v => {
       patch(null, v, container, parent);
     });
   }
