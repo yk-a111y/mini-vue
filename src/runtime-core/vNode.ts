@@ -8,6 +8,7 @@ export function createVNode(type, props?, children?) {
     type, // 字符串 或 组件对象
     props, // props对象
     children, // 子组件 or 子元素
+    key: props?.key, // diff所使用的key
     el: null,
     shapeFlag: getShapeFlag(type)
   };

@@ -27,3 +27,7 @@ export const camelize = (str: string) => {
 export const toHandleKey = (str: string) => {
   return str ? 'on' + captialize(str) : '';
 }
+
+export const isSameVNodeType = (n1, n2) => {
+  return n1.type === n2.type && n1.key === n2.key;
+}

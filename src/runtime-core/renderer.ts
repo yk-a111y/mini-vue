@@ -1,5 +1,5 @@
 import { effect } from "../reactivity/effect";
-import { EMPTY_OBJ } from "../shared";
+import { EMPTY_OBJ, isSameVNodeType } from "../shared";
 import { shapeFlags } from "../shared/shapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
 import { createAppAPI } from "./createApp";
@@ -119,12 +119,48 @@ export function createRenderer(options) {
       }
     } else {
       // 新节点为数组，老节点为文本元素
-
-      // 1. 删除文本节点
-      hostSetElementText(container, '');
-      // 2. mount 新的数组
-      mountChildren(n2.children, container, parentComponent);
+      if (prevShapeFlag & shapeFlags.TEXT_CHILDREN) {
+        // 1. 删除文本节点
+        hostSetElementText(container, '');
+        // 2. mount 新的数组
+        mountChildren(n2.children, container, parentComponent);
+      } else {
+        // 新老节点都为数组：启动Diff算法
+        patchKeyedChidren(n1.children, n2.children, container, parentComponent);
+      }
     }
+  }
+
+  function patchKeyedChidren(c1, c2, container, parentComponent) {
+    let i = 0;
+    let e1 = c1.length - 1;
+    let e2 = c2.length - 1;
+    // 左侧
+    while (i <= e1 && i <= e2) {
+      const n1 = c1[i];
+      const n2 = c2[i];
+      if (isSameVNodeType(n1, n2)) {
+        patch(n1, n2, container, parentComponent);
+      } else {
+        break;
+      }
+      i++;
+    }
+    // 右侧
+    while(i <= e1 && i <= e2) {
+      const n1 = c1[e1];
+      const n2 = c2[e2];
+
+      if (isSameVNodeType(n1, n2)) {
+        patch(n1, n2, container, parentComponent);
+      } else {
+        break;
+      }
+
+      e1--, e2--;
+    }
+
+    console.log(e1, e2);
   }
   
   function processComponent(n1, n2, container, parent) {
