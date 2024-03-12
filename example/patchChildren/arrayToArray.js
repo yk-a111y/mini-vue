@@ -14,17 +14,71 @@ import { h, ref } from '../../lib/guide-mini-vue.esm.js';
 // ]
 
 // 2. 右侧对比
-const old = [
-  h('p', { key : 'C'}, 'C'),
+// const old = [
+//   h('p', { key : 'C'}, 'C'),
+//   h('p', { key : 'B'}, 'B'),
+//   h('p', { key : 'A'}, 'A')
+// ]
+// const next = [
+//   h('p', { key : 'E'}, 'E'),
+//   h('p', { key : 'D'}, 'D'),
+//   h('p', { key : 'B'}, 'B'),
+//   h('p', { key : 'A'}, 'A'),
+// ]
+
+// 3. 新的比老的长 => 创建一系列新节点
+// 3.1 左侧
+// const prevChildren = [
+//   h('p', { key : 'A'}, 'A'),
+//   h('p', { key : 'B'}, 'B')
+// ]
+
+// const nextChildren = [
+//   h('p', { key : 'A'}, 'A'),
+//   h('p', { key : 'B'}, 'B'),
+//   h('p', { key : 'C'}, 'C'),
+//   h('p', { key : 'D'}, 'D'),
+// ]
+
+// 3.2 右侧
+const prevChildren = [
   h('p', { key : 'B'}, 'B'),
   h('p', { key : 'A'}, 'A')
 ]
-const next = [
-  h('p', { key : 'E'}, 'E'),
+
+const nextChildren = [
   h('p', { key : 'D'}, 'D'),
+  h('p', { key : 'C'}, 'C'),
   h('p', { key : 'B'}, 'B'),
   h('p', { key : 'A'}, 'A'),
 ]
+
+// 4. 老的比新的长 => 删除
+// 4.1 左侧
+// const prevChildren = [
+//   h('p', { key : 'A'}, 'A'),
+//   h('p', { key : 'B'}, 'B'),
+//   h('p', { key : 'C'}, 'C'),
+//   h('p', { key : 'D'}, 'D'),
+// ]
+
+// const nextChildren = [
+//   h('p', { key : 'A'}, 'A'),
+//   h('p', { key : 'B'}, 'B')
+// ]
+
+// 4.1 右侧
+// const prevChildren = [
+//   h('p', { key : 'A'}, 'A'),
+//   h('p', { key : 'A'}, 'A'),
+//   h('p', { key : 'B'}, 'B'),
+//   h('p', { key : 'C'}, 'C')
+// ]
+
+// const nextChildren = [
+//   h('p', { key : 'B'}, 'B'),
+//   h('p', { key : 'C'}, 'C')
+// ]
 
 export default {
   name: 'ArrayToArray',
@@ -40,7 +94,7 @@ export default {
     const self = this;
 
     return self.isChange === true
-      ? h('div', {}, next)
-      : h('div', {}, old) 
+      ? h('div', {}, nextChildren)
+      : h('div', {}, prevChildren) 
   }
 }
