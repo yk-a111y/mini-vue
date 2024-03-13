@@ -176,7 +176,54 @@ export function createRenderer(options) {
       }
     // 5. 乱序
     } else {
-      console.log('乱序');
+      let s1 = i;
+      let s2 = i;
+
+      const keyToNewIndexMap = new Map();
+
+      // 遍历新节点，生成keyToNewIndexMap
+      for (let i = s2; i <= e2; i++) {
+        const nextChild = c2[i];
+        keyToNewIndexMap.set(nextChild.key, i);
+      }
+
+      let toBePatched = e2 - s2 + 1;
+      let patched = 0;
+
+      // 遍历老节点的每一项，看是否可以复用
+      for (let i = s1; i <= e1; i++) {
+        let prevChild = c1[i];
+        let newIndex;
+
+        // 优化点：当处理的节点数量 大于 新节点数量时，证明旧节点过长，可以将之后的全部删除，不用再做校验了
+        if (patched >= toBePatched) {
+          hostRemove(prevChild.el);
+          continue;
+        }
+
+        // 用户设置了key，去map中检索，否则需要遍历
+        if (prevChild.key !== null) {
+          newIndex = keyToNewIndexMap.get(prevChild.key);
+        } else {
+        // 用户没有设置key，则需要遍历新节点看是否有可复用节点
+          for (let j = s2; j <= e2; j++) {
+            if (isSameVNodeType(prevChild, c2[j])) {
+              newIndex = j;
+              break;
+            }
+          }
+        }
+
+        // 如果newIndex不存在 => 新节点不可复用老节点，故删除
+        // 如果newIndex存在 => 可复用，执行patch深度对比二者
+        if (newIndex === undefined) {
+          hostRemove(prevChild.el);
+        } else {
+          patch(prevChild, c2[newIndex], container, parentComponent, null);
+          // 每处理完一个节点，patched++
+          patched++;
+        }
+      }
     }
   }
   
