@@ -6,6 +6,52 @@ import { createAppAPI } from "./createApp";
 import { Fragment, Text } from "./vNode";
 
 
+function getSequence(arr) {
+  const p = arr.slice();
+  const result = [0];
+
+  let i, j, u, v, c;
+  const len = arr.length;
+
+  for (let i = 0; i < len; i++) {
+    const arrI = arr[i];
+    if (arrI !== 0) {
+      j = result[result.length - 1];
+      if (arr[j] < arrI) {
+        p[i] = j;
+        result.push(i);
+        continue;
+      }
+
+      u = 0;
+      v = result.length - 1;
+      while (u < v) {
+        c = (u + v) >> 1;
+        if (arr[result[c]] < arrI) {
+          u = c + 1;
+        } else {
+          v = c;
+        }
+      }
+
+      if (arrI < arr[result[u]]) {
+        if (u > 0) {
+          p[i] = result[u - 1];
+        }
+        result[u] = i;
+      }
+    }
+  }
+  u = result.length;
+  v = result[u - 1];
+  while (u-- > 0) {
+    result[u] = v;
+    v = p[v];
+  }
+
+  return result;
+}
+
 export function createRenderer(options) {
   const {
     createElement: hostCreateElement,
@@ -157,9 +203,8 @@ export function createRenderer(options) {
       }
       e1--, e2--;
     }
-
-    // 3. 新的比老的多 => patch创建新节点
-    if (i > e1) {
+    
+    if (i > e1) {  // 3. 新的比老的多 => patch创建新节点
       if (i <= e2) {
         const nextPos = e2 + 1;
         const anchor = (nextPos < c2.length) ? c2[nextPos].el : null;
@@ -168,18 +213,24 @@ export function createRenderer(options) {
           i++;
         }
       }
-    // 4. 老的比新的多 => hostRemove删除节点
-    } else if (i > e2) {
+    } else if (i > e2) {  // 4. 老的比新的多 => hostRemove删除节点
       while (i <= e1) {
         hostRemove(c1[i].el);
         i++;
       }
-    // 5. 乱序
-    } else {
+    } else {  // 5. 乱序
       let s1 = i;
       let s2 = i;
 
+      let toBePatched = e2 - s2 + 1;
+      let patched = 0;
+
       const keyToNewIndexMap = new Map();
+      // 建立新旧索引关系
+      const newIndexToOldIndexMap = new Array(toBePatched).fill(0);
+      // 中间节点是否发生了移动
+      let moved = false;
+      let maxNewIndexSoFar = 0;
 
       // 遍历新节点，生成keyToNewIndexMap
       for (let i = s2; i <= e2; i++) {
@@ -187,15 +238,12 @@ export function createRenderer(options) {
         keyToNewIndexMap.set(nextChild.key, i);
       }
 
-      let toBePatched = e2 - s2 + 1;
-      let patched = 0;
-
       // 遍历老节点的每一项，看是否可以复用
       for (let i = s1; i <= e1; i++) {
         let prevChild = c1[i];
         let newIndex;
 
-        // 优化点：当处理的节点数量 大于 新节点数量时，证明旧节点过长，可以将之后的全部删除，不用再做校验了
+        // 优化：当处理的节点数量 大于 新节点数量时，证明旧节点过长，可以将之后的全部删除，不用再做校验了
         if (patched >= toBePatched) {
           hostRemove(prevChild.el);
           continue;
@@ -219,9 +267,37 @@ export function createRenderer(options) {
         if (newIndex === undefined) {
           hostRemove(prevChild.el);
         } else {
+          if (newIndex > maxNewIndexSoFar) {
+            maxNewIndexSoFar = newIndex;
+          } else {
+            moved = true; // 新节点发生了移动
+          }
+          // newIndex存在，存储新旧映射关系
+          newIndexToOldIndexMap[newIndex - s2] = i + 1;
           patch(prevChild, c2[newIndex], container, parentComponent, null);
           // 每处理完一个节点，patched++
           patched++;
+        }
+      }
+
+      // 生成最长递增子序列
+      const increasingNewIndexSequence = moved ? getSequence(newIndexToOldIndexMap) : [];
+      let j = increasingNewIndexSequence.length - 1; // 指向最长递增子序列的指针
+      for (let i = toBePatched - 1; i >= 0; i--) {
+        const nextIndex = i + s2;
+        const nextChild = c2[nextIndex];
+        const anchor = nextIndex + 1 < c2.length ? c2[nextIndex + 1].el : null;
+
+        if (newIndexToOldIndexMap[i] === 0) { // 为0 => 老节点中无该元素，需要创建该元素
+          patch(null, nextChild, container, parentComponent, anchor);
+        }
+
+        if (moved) {
+          if (j < 0 || i !== increasingNewIndexSequence[j]) { // 如果当前索引 !== 最长递增子序列的索引 => 需要移动元素
+            hostInsert(nextChild.el, container, anchor)
+          } else { // 相等的话 => 元素不必移动，指针继续向前搜索
+            j--;
+          }
         }
       }
     }

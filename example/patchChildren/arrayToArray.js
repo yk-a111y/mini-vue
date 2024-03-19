@@ -28,6 +28,8 @@ import { h, ref } from '../../lib/guide-mini-vue.esm.js';
 
 // 3. 新的比老的长 => 创建一系列新节点
 // 3.1 左侧
+// a b 
+// a b (c d)
 // const prevChildren = [
 //   h('p', { key : 'A'}, 'A'),
 //   h('p', { key : 'B'}, 'B')
@@ -41,6 +43,8 @@ import { h, ref } from '../../lib/guide-mini-vue.esm.js';
 // ]
 
 // 3.2 右侧
+// (d c) b a
+//       b a
 // const prevChildren = [
 //   h('p', { key : 'B'}, 'B'),
 //   h('p', { key : 'A'}, 'A')
@@ -82,14 +86,78 @@ import { h, ref } from '../../lib/guide-mini-vue.esm.js';
 
 // 5. 乱序
 // 5.1 => 删除老的
+// const prevChildren = [
+//   h('p', { key : 'A'}, 'A'),
+//   h('p', { key : 'B'}, 'B'),
+//   h('p', { key : 'C', id: 'c-prev'}, 'C'),
+//   h('p', { key : 'D'}, 'D'),
+//   h('p', { key : 'E'}, 'E'),
+//   h('p', { key : 'K'}, 'K'),
+//   h('p', { key : 'L'}, 'L'),
+//   h('p', { key : 'F'}, 'F'),
+//   h('p', { key : 'G'}, 'G'),
+// ]
+
+// const nextChildren = [
+//   h('p', { key : 'A'}, 'A'),
+//   h('p', { key : 'B'}, 'B'),
+//   h('p', { key : 'E'}, 'E'),
+//   h('p', { key : 'C', id: 'c-new'}, 'C'),
+//   h('p', { key : 'F'}, 'F'),
+//   h('p', { key : 'G'}, 'G'),
+// ]
+
+// 6. 移动
+// const prevChildren = [
+//   h('p', { key : 'A'}, 'A'),
+//   h('p', { key : 'B'}, 'B'),
+//   h('p', { key : 'C'}, 'C'),
+//   h('p', { key : 'D'}, 'D'),
+//   h('p', { key : 'E'}, 'E'),
+//   h('p', { key : 'F'}, 'F'),
+//   h('p', { key : 'G'}, 'G'),
+// ]
+
+// const nextChildren = [
+//   h('p', { key : 'A'}, 'A'),
+//   h('p', { key : 'B'}, 'B'),
+//   h('p', { key : 'E'}, 'E'),
+//   h('p', { key : 'C'}, 'C'),
+//   h('p', { key : 'D'}, 'D'),
+//   h('p', { key : 'F'}, 'F'),
+//   h('p', { key : 'G'}, 'G'),
+// ]
+
+// 创建新节点
+// const prevChildren = [
+//   h('p', { key : 'A'}, 'A'),
+//   h('p', { key : 'B'}, 'B'),
+//   h('p', { key : 'C'}, 'C'),
+//   h('p', { key : 'E'}, 'E'),
+//   h('p', { key : 'F'}, 'F'),
+//   h('p', { key : 'G'}, 'G'),
+// ]
+
+// const nextChildren = [
+//   h('p', { key : 'A'}, 'A'),
+//   h('p', { key : 'B'}, 'B'),
+//   h('p', { key : 'E'}, 'E'),
+//   h('p', { key : 'C'}, 'C'),
+//   h('p', { key : 'D'}, 'D'),
+//   h('p', { key : 'F'}, 'F'),
+//   h('p', { key : 'G'}, 'G'),
+// ]
+
+// 总结：综合例子
+// a b (c d e z) f g => 老
+// a b (d c y e) f g => 新
 const prevChildren = [
   h('p', { key : 'A'}, 'A'),
   h('p', { key : 'B'}, 'B'),
-  h('p', { key : 'C', id: 'c-prev'}, 'C'),
+  h('p', { key : 'C'}, 'C'),
   h('p', { key : 'D'}, 'D'),
   h('p', { key : 'E'}, 'E'),
-  h('p', { key : 'K'}, 'K'),
-  h('p', { key : 'L'}, 'L'),
+  h('p', { key : 'Z'}, 'Z'),
   h('p', { key : 'F'}, 'F'),
   h('p', { key : 'G'}, 'G'),
 ]
@@ -97,12 +165,13 @@ const prevChildren = [
 const nextChildren = [
   h('p', { key : 'A'}, 'A'),
   h('p', { key : 'B'}, 'B'),
+  h('p', { key : 'D'}, 'D'),
+  h('p', { key : 'C'}, 'C'),
+  h('p', { key : 'Y'}, 'Y'),
   h('p', { key : 'E'}, 'E'),
-  h('p', { key : 'C', id: 'c-new'}, 'C'),
   h('p', { key : 'F'}, 'F'),
   h('p', { key : 'G'}, 'G'),
 ]
-
 
 export default {
   name: 'ArrayToArray',
