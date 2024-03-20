@@ -8,7 +8,8 @@ import { initSlots } from "./componentSlots";
 export function createComponentInstance(vNode, parent) {
   const component = {
     type: vNode.type,
-    vNode,
+    vNode, // 当前VNode
+    next: null, // 新的VNode
     setupState: {},
     props: {},
     slots: {},
@@ -16,7 +17,8 @@ export function createComponentInstance(vNode, parent) {
     parent: parent,
     isMounted: false,
     subTree: {},
-    emit: () => {}
+    emit: () => {},
+    update: null, // 更新函数，挂载到Component上
   }
 
   component.emit = emit.bind(null, component) as any;

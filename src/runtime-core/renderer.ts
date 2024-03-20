@@ -1,56 +1,10 @@
 import { effect } from "../reactivity/effect";
 import { EMPTY_OBJ, isSameVNodeType } from "../shared";
+import { shouldComponentUpdate } from './componentUpdateUtils'
 import { shapeFlags } from "../shared/shapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
 import { createAppAPI } from "./createApp";
 import { Fragment, Text } from "./vNode";
-
-
-function getSequence(arr) {
-  const p = arr.slice();
-  const result = [0];
-
-  let i, j, u, v, c;
-  const len = arr.length;
-
-  for (let i = 0; i < len; i++) {
-    const arrI = arr[i];
-    if (arrI !== 0) {
-      j = result[result.length - 1];
-      if (arr[j] < arrI) {
-        p[i] = j;
-        result.push(i);
-        continue;
-      }
-
-      u = 0;
-      v = result.length - 1;
-      while (u < v) {
-        c = (u + v) >> 1;
-        if (arr[result[c]] < arrI) {
-          u = c + 1;
-        } else {
-          v = c;
-        }
-      }
-
-      if (arrI < arr[result[u]]) {
-        if (u > 0) {
-          p[i] = result[u - 1];
-        }
-        result[u] = i;
-      }
-    }
-  }
-  u = result.length;
-  v = result[u - 1];
-  while (u-- > 0) {
-    result[u] = v;
-    v = p[v];
-  }
-
-  return result;
-}
 
 export function createRenderer(options) {
   const {
@@ -304,7 +258,11 @@ export function createRenderer(options) {
   }
   
   function processComponent(n1, n2, container, parent, anchor) {
-    mountComponent(n2, container, parent, anchor);
+    if (!n1) {
+      mountComponent(n2, container, parent, anchor);
+    } else {
+      updateComponent(n1, n2)
+    }
   }
   
   function mountElement(vNode, container, parent, anchor) {
@@ -345,15 +303,27 @@ export function createRenderer(options) {
   
   function mountComponent(vNode: any, container, parent, anchor) {
     // 创建组件实例
-    const instance = createComponentInstance(vNode, parent);
+    const instance = (vNode.component = createComponentInstance(vNode, parent));
   
     setupComponent(instance);
     setupRenderEffect(instance, vNode, container, anchor);
   }
+
+  function updateComponent(n1, n2) {
+    const instance = (n2.component = n1.component); // n2当前无Component，所以要把n1的component赋值过来
+    if (shouldComponentUpdate(n1, n2)) {
+      instance.next = n2; // 存储新的VNode
+      instance.update();
+    } else {
+      console.log('无更新逻辑触发');
+      n2.el = n1.el;
+      instance.vNode = n2; 
+    }
+  }
   
   function setupRenderEffect(instance: any, vNode, container, anchor) {
     // effect包裹，实现副作用收集
-    effect(() => {
+    instance.update = effect(() => {
       if (!instance.isMounted) {
         // 初始化逻辑
         console.log('init-----------');
@@ -370,7 +340,11 @@ export function createRenderer(options) {
       } else {
         // 更新逻辑
         console.log('update-------------');
-        const { proxy } = instance;
+        const { proxy, next, vNode } = instance;
+        if (next) {
+          next.el = vNode.el;
+          updateComponentPreRender(instance, next);
+        }
         const subTree = instance.render.call(proxy);
         const prevSubTree = instance.subTree;
 
@@ -386,4 +360,60 @@ export function createRenderer(options) {
   return {
     createApp: createAppAPI(render)
   }
+}
+
+function updateComponentPreRender(instance, nextVNode) {
+  // 更新实例对象上的VNode
+  instance.vNode = nextVNode;
+  instance.next = null;
+  // 更新实例对象上的props
+  instance.props = nextVNode.props;
+}
+
+
+// 最大递增子序列
+function getSequence(arr) {
+  const p = arr.slice();
+  const result = [0];
+
+  let i, j, u, v, c;
+  const len = arr.length;
+
+  for (let i = 0; i < len; i++) {
+    const arrI = arr[i];
+    if (arrI !== 0) {
+      j = result[result.length - 1];
+      if (arr[j] < arrI) {
+        p[i] = j;
+        result.push(i);
+        continue;
+      }
+
+      u = 0;
+      v = result.length - 1;
+      while (u < v) {
+        c = (u + v) >> 1;
+        if (arr[result[c]] < arrI) {
+          u = c + 1;
+        } else {
+          v = c;
+        }
+      }
+
+      if (arrI < arr[result[u]]) {
+        if (u > 0) {
+          p[i] = result[u - 1];
+        }
+        result[u] = i;
+      }
+    }
+  }
+  u = result.length;
+  v = result[u - 1];
+  while (u-- > 0) {
+    result[u] = v;
+    v = p[v];
+  }
+
+  return result;
 }

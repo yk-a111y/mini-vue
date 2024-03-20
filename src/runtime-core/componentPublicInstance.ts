@@ -2,7 +2,8 @@ import { hasOwn } from "../shared";
 
 const publicPropertiesMap = {
   $el: (i) => i.vNode.el,
-  $slots: (i) => i.slots
+  $slots: (i) => i.slots,
+  $props: (i) => i.props
 }
 
 export const publicInstanceProxyHandlers = {
