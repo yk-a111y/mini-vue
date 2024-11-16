@@ -1,6 +1,6 @@
 import { effect } from "../reactivity/effect";
 import { EMPTY_OBJ, isSameVNodeType } from "../shared";
-import { shouldComponentUpdate } from './componentUpdateUtils'
+import { shouldComponentUpdate } from "./componentUpdateUtils";
 import { shapeFlags } from "../shared/shapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
 import { createAppAPI } from "./createApp";
@@ -12,7 +12,7 @@ export function createRenderer(options) {
     patchProps: hostPatchProps,
     insert: hostInsert,
     remove: hostRemove,
-    setElementText: hostSetElementText
+    setElementText: hostSetElementText,
   } = options;
 
   function render(vNode, container) {
@@ -41,17 +41,17 @@ export function createRenderer(options) {
         break;
     }
   }
-  
+
   function processFragment(n1, n2, container, parent, anchor) {
     mountChildren(n2.children, container, parent, anchor);
   }
-  
+
   function processTextNode(n1, n2, container) {
     const { children } = n2;
     const textNode = (n2.el = document.createTextNode(children));
     container.append(textNode);
   }
-  
+
   function processElement(n1, n2, container, parent, anchor) {
     if (!n1) {
       // 挂载逻辑
@@ -97,7 +97,6 @@ export function createRenderer(options) {
         }
       }
     }
-    
   }
   function patchChildren(n1, n2, container, parentComponent, anchor) {
     const prevShapeFlag = n1.shapeFlag;
@@ -120,12 +119,18 @@ export function createRenderer(options) {
       // 新节点为数组，老节点为文本元素
       if (prevShapeFlag & shapeFlags.TEXT_CHILDREN) {
         // 1. 删除文本节点
-        hostSetElementText(container, '');
+        hostSetElementText(container, "");
         // 2. mount 新的数组
         mountChildren(n2.children, container, parentComponent, anchor);
       } else {
         // 新老节点都为数组：启动Diff算法
-        patchKeyedChidren(n1.children, n2.children, container, parentComponent, anchor);
+        patchKeyedChidren(
+          n1.children,
+          n2.children,
+          container,
+          parentComponent,
+          anchor
+        );
       }
     }
   }
@@ -146,7 +151,7 @@ export function createRenderer(options) {
       i++;
     }
     // 2. 右侧
-    while(i <= e1 && i <= e2) {
+    while (i <= e1 && i <= e2) {
       const n1 = c1[e1];
       const n2 = c2[e2];
 
@@ -157,22 +162,25 @@ export function createRenderer(options) {
       }
       e1--, e2--;
     }
-    
-    if (i > e1) {  // 3. 新的比老的多 => patch创建新节点
+
+    if (i > e1) {
+      // 3. 新的比老的多 => patch创建新节点
       if (i <= e2) {
         const nextPos = e2 + 1;
-        const anchor = (nextPos < c2.length) ? c2[nextPos].el : null;
+        const anchor = nextPos < c2.length ? c2[nextPos].el : null;
         while (i <= e2) {
           patch(null, c2[i], container, parentComponent, anchor);
           i++;
         }
       }
-    } else if (i > e2) {  // 4. 老的比新的多 => hostRemove删除节点
+    } else if (i > e2) {
+      // 4. 老的比新的多 => hostRemove删除节点
       while (i <= e1) {
         hostRemove(c1[i].el);
         i++;
       }
-    } else {  // 5. 乱序
+    } else {
+      // 5. 乱序
       let s1 = i;
       let s2 = i;
 
@@ -207,7 +215,7 @@ export function createRenderer(options) {
         if (prevChild.key !== null) {
           newIndex = keyToNewIndexMap.get(prevChild.key);
         } else {
-        // 用户没有设置key，则需要遍历新节点看是否有可复用节点
+          // 用户没有设置key，则需要遍历新节点看是否有可复用节点
           for (let j = s2; j <= e2; j++) {
             if (isSameVNodeType(prevChild, c2[j])) {
               newIndex = j;
@@ -235,61 +243,66 @@ export function createRenderer(options) {
       }
 
       // 生成最长递增子序列
-      const increasingNewIndexSequence = moved ? getSequence(newIndexToOldIndexMap) : [];
+      const increasingNewIndexSequence = moved
+        ? getSequence(newIndexToOldIndexMap)
+        : [];
       let j = increasingNewIndexSequence.length - 1; // 指向最长递增子序列的指针
       for (let i = toBePatched - 1; i >= 0; i--) {
         const nextIndex = i + s2;
         const nextChild = c2[nextIndex];
         const anchor = nextIndex + 1 < c2.length ? c2[nextIndex + 1].el : null;
 
-        if (newIndexToOldIndexMap[i] === 0) { // 为0 => 老节点中无该元素，需要创建该元素
+        if (newIndexToOldIndexMap[i] === 0) {
+          // 为0 => 老节点中无该元素，需要创建该元素
           patch(null, nextChild, container, parentComponent, anchor);
         }
 
         if (moved) {
-          if (j < 0 || i !== increasingNewIndexSequence[j]) { // 如果当前索引 !== 最长递增子序列的索引 => 需要移动元素
-            hostInsert(nextChild.el, container, anchor)
-          } else { // 相等的话 => 元素不必移动，指针继续向前搜索
+          if (j < 0 || i !== increasingNewIndexSequence[j]) {
+            // 如果当前索引 !== 最长递增子序列的索引 => 需要移动元素
+            hostInsert(nextChild.el, container, anchor);
+          } else {
+            // 相等的话 => 元素不必移动，指针继续向前搜索
             j--;
           }
         }
       }
     }
   }
-  
+
   function processComponent(n1, n2, container, parent, anchor) {
     if (!n1) {
       mountComponent(n2, container, parent, anchor);
     } else {
-      updateComponent(n1, n2)
+      updateComponent(n1, n2);
     }
   }
-  
+
   function mountElement(vNode, container, parent, anchor) {
     // 同时在vNode上保存el，用于this.$el访问
-    const el = vNode.el = hostCreateElement(vNode.type);
-  
+    const el = (vNode.el = hostCreateElement(vNode.type));
+
     // 配置props
     const { props } = vNode;
     for (const key in props) {
       const val = props[key];
       hostPatchProps(el, key, null, val);
     }
-  
+
     // 配置children(可能是文本，也可能是数组内嵌套多个vNode)
     const { children } = vNode;
-    if(vNode.shapeFlag & shapeFlags.TEXT_CHILDREN) {
+    if (vNode.shapeFlag & shapeFlags.TEXT_CHILDREN) {
       el.textContent = children;
     } else if (vNode.shapeFlag & shapeFlags.ARRAY_CHILDREN) {
       mountChildren(vNode.children, el, parent, anchor);
     }
-  
+
     // el加入容器中
     hostInsert(el, container, anchor);
   }
-  
+
   function mountChildren(children, container, parent, anchor) {
-    children.forEach( v => {
+    children.forEach((v) => {
       patch(null, v, container, parent, anchor);
     });
   }
@@ -300,11 +313,11 @@ export function createRenderer(options) {
       hostRemove(el);
     }
   }
-  
+
   function mountComponent(vNode: any, container, parent, anchor) {
     // 创建组件实例
     const instance = (vNode.component = createComponentInstance(vNode, parent));
-  
+
     setupComponent(instance);
     setupRenderEffect(instance, vNode, container, anchor);
   }
@@ -315,31 +328,31 @@ export function createRenderer(options) {
       instance.next = n2; // 存储新的VNode
       instance.update();
     } else {
-      console.log('无更新逻辑触发');
+      console.log("无更新逻辑触发");
       n2.el = n1.el;
-      instance.vNode = n2; 
+      instance.vNode = n2;
     }
   }
-  
+
   function setupRenderEffect(instance: any, vNode, container, anchor) {
     // effect包裹，实现副作用收集
     instance.update = effect(() => {
       if (!instance.isMounted) {
         // 初始化逻辑
-        console.log('init-----------');
+        console.log("init-----------");
         const { proxy } = instance;
         // this指向通过setupStatefulComponent生成的proxy对象
         const subTree = (instance.subTree = instance.render.call(proxy));
-      
+
         patch(null, subTree, container, instance, null);
-      
+
         // patch自顶向下处理完成后，获得el
         vNode.el = subTree.el;
         // 挂载完成
         instance.isMounted = true;
       } else {
         // 更新逻辑
-        console.log('update-------------');
+        console.log("update-------------");
         const { proxy, next, vNode } = instance;
         if (next) {
           next.el = vNode.el;
@@ -353,13 +366,12 @@ export function createRenderer(options) {
         // patch比较两个树的不同
         patch(prevSubTree, subTree, container, instance.parent, anchor);
       }
-    })
-    
+    });
   }
 
   return {
-    createApp: createAppAPI(render)
-  }
+    createApp: createAppAPI(render),
+  };
 }
 
 function updateComponentPreRender(instance, nextVNode) {
@@ -369,7 +381,6 @@ function updateComponentPreRender(instance, nextVNode) {
   // 更新实例对象上的props
   instance.props = nextVNode.props;
 }
-
 
 // 最大递增子序列
 function getSequence(arr) {
